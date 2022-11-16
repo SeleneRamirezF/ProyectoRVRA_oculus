@@ -6,3 +6,9 @@ Participantes:
 - Alejandro
 - Selene
 - Juanjo
+
+Temática 
+- Juego de Feria
+
+Funcionalidad
+- Juego de las botellas
