@@ -7,4 +7,8 @@ Participantes:
 - Selene
 - Juanjo
 
-### Modificado por Alejandro
+Temática 
+- Juego de Feria
+
+Funcionalidad
+- Juego de las botellas
