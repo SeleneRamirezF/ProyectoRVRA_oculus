@@ -2,12 +2,14 @@ var count = 0;
 var selectedObj;
 var gripPressed;
 
-
 AFRAME.registerComponent('ball-detect', {
   init: function () {
-    var ent = this.el;      
+    var ent = this.el;   
+   // var debugtxt = document.getElementById("debugTxt");
+    
     this.el.addEventListener('collide', function(e){
       if(e.detail.body.el.id.includes('bowling-pin')){
+        //debugtxt.setAttribute('value','colision producida con:' + e.detail.body.el.id);
        // console.log('Colisión producida con: ' + e.detail.body.el.id);
         //console.log(e)
         try{
@@ -19,7 +21,7 @@ AFRAME.registerComponent('ball-detect', {
           //(document.getElementById("pointsDisplay")).value=nuevoTexto;
          
         } catch (err){console.log(err)}
-        console.log('Número de puntos:' + count);
+        //console.log('Número de puntos:' + count);
       }
     });
   },
@@ -47,6 +49,7 @@ AFRAME.registerComponent('thumbstick-movement',{
     }
   }
 });
+
 AFRAME.registerComponent('thumbstick-camera',{
   init: function () {
     
@@ -63,69 +66,55 @@ AFRAME.registerComponent('thumbstick-camera',{
     }
   }
 });
+
 AFRAME.registerComponent('collider-check', {
   dependencies: ['raycaster'],
 
   init: function () {
     var debugtxt = document.getElementById("debugTxt");
 
-    this.el.addEventListener('raycaster-intersection', function () {
-      debugtxt.setAttribute('value','Intersección detectada!');
+    this.el.addEventListener('raycaster-intersection', function (e) {
+      this.selectedObj = e.detail.els[0];
+      debugtxt.setAttribute('value','Interseccion detectada!');
     });
+    
+    //-- grip button pressed
+    this.el.addEventListener('gripdown', function (e) {
+        this.grip = true;
+        debugtxt.setAttribute('value', 'Grip button presionado');
+    });
+    
+    //-- grip button released
+    this.el.addEventListener('gripup', function (e) {
+        this.grip = false;
+        debugtxt.setAttribute('value', 'Grip button liberado');
+    });
+  },
+  
+  tick: function(){
+    if(!this.el.selectedObj) return;
+    if(!this.el.grip) return;
+    
+    
+    var raycast = this.el.getAttribute("raycaster").direction;
+    
+    var pos = new THREE.Vector3(raycast.x, raycast.y, raycast.z);
+    pos.normalize();
+    
+    //-- final destination of object will be 2m in front of ray
+    pos.multiplyScalar(0.1);
+              
+    //-- convert to world coordinate
+    this.el.object3D.localToWorld(pos);
+    
+    //Move selected object to follow the tip of raycaster.
+    this.el.selectedObj.object3D.position.set(pos.x, pos.y, pos.z);
+    
+    
+    if (this.el.selectedObj.components["dynamic-body"]) {
+      this.el.selectedObj.components["dynamic-body"].syncToPhysics();
+    }
   }
+  
 });
-
-// AFRAME.registerComponent('collider-check', {
-//   dependencies: ['raycaster'],
-//   init: function () {
-   
-//     this.el.addEventListener('raycaster-intersection', function (e) {
-//       debugtxt.setAttribute('value', 'interseccion');
-//       this.selectedObj = e.detail.els[0];
-//     });
-//     this.el.addEventListener('raycaster-intersection-cleared', function (e) {
-//       debugtxt.setAttribute('value', 'fuera interseccion');
-//       this.selectedObj = false;
-//     });
-//     this.el.addEventListener('gripdown', function(e){
-//       debugtxt.setAttribute('value', 'agarre');
-//       this.gripPressed = true;
-//     });
-//     this.el.addEventListener('gripup', function(e){
-//       debugtxt.setAttribute('value', 'soltar');
-//       this.gripPressed = false;
-//     });
-//   },
-//   tick: function(){
-//     try{
-//     var debugtxt = document.getElementById("debugTxt");
-//     debugtxt.setAttribute('value', '1');
-//     if(!this.selectedObj || !this.gripPressed) return;
-//     debugtxt.setAttribute('value', '2');
-//     //Direccion raycast
-//     var raycast = this.el.getAttribute("raycaster").direction;
-//     debugtxt.setAttribute('value', '3');
-//     // Posicion del impacto entiendo
-//     var position = new THREE.Vector3(raycast.x,raycast.y, raycast.z);
-//     debugtxt.setAttribute('value', '4');
-//     //NOrmalizar
-//     position.normalize();
-//     debugtxt.setAttribute('value', '5');
-//     //Separar de la mano
-//     position.multiplyScalar(2);
-//     debugtxt.setAttribute('value', '6');
-//     //Obtener lugar real
-//     this.el.object3D.localToWorld(position);
-//     debugtxt.setAttribute('value', '7');
-//     //Ponerle la pos al objeto
-//     this.el.selectedObj.object3D.position.set(position.x, position.y, position.z);
-//     //Sincronizar físicas
-//     if(this.el.selectedObj.components["dynamic-body"]){
-//       this.el.selectedObj.components["dynamic-body"].syncToPhysics();
-//     }
-//     } catch(err){
-//       debugtxt.setAttribute('value', err);
-//     }
-//   }
-// });
 
